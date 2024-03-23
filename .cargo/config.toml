@@ -1,0 +1,6 @@
+
+
+[env]
+DB_USERNAME="username"
+DB_PASSWORD="password"
+DB_NAME="schema_name"
