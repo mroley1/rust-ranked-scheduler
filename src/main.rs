@@ -1,15 +1,12 @@
 use mysql::*;
 use mysql::prelude::*;
+use rocket::response::status;
 
-fn main() {
-    
-    #[derive(Debug, PartialEq, Eq)]
-    struct TestRow {
-        id: i32,
-        data: String,
-        datatwo: i32,
-    }
-    
+mod tables;
+
+#[macro_use] extern crate rocket;
+
+fn db_connect() -> PooledConn {
     let username = env!("DB_USERNAME", "failed to fetch username");
     let password = env!("DB_PASSWORD", "failed to fetch password");
     let db_name = env!("DB_NAME", "failed to fetch database name");
@@ -17,20 +14,27 @@ fn main() {
         .user(Some(username))
         .pass(Some(password))
         .db_name(Some(db_name));
-    
     let pool = Pool::new(opts).unwrap();
-    let mut conn = pool.get_conn().unwrap();
+    pool.get_conn().unwrap()
+}
 
 
-    let select = conn
+#[get("/")]
+fn index() -> status::Accepted<String> {
+    
+    let select = db_connect()
     .query_map(
-        "SELECT * FROM testing_schema.testtable;",
-        |(id, data, datatwo)| {
-            TestRow { id, data, datatwo }
+        "SELECT * FROM participants;",
+        |(id, name)| {
+            tables::Participants{ id, name }
         },
     ).unwrap();
     
-    println!("{}, {}, {}", select[0].id, select[0].data, select[0].datatwo);
+    status::Accepted(format!("{}, {}", select[1].id, select[1].name))
+}
+
+#[launch]
+fn rocket() -> _ {
     
-    
+    rocket::build().mount("/", routes![index])
 }
