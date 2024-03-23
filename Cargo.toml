@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 mysql = "*"
-rocket = "0.5.0"
+rocket = { version = "0.5.0", features = ["json"]}
