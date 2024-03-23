@@ -1,8 +1,9 @@
+use std::vec;
+
 use mysql::*;
 use mysql::prelude::*;
 use rocket::http::Status;
-use rocket::response::status;
-use rocket::serde::json::Json;
+use rocket::serde::{Deserialize, json::Json};
 
 mod tables;
 
@@ -20,31 +21,22 @@ fn db_connect() -> PooledConn {
     pool.get_conn().unwrap()
 }
 
-
 #[get("/")]
-fn index() -> status::Accepted<String> {
-    
-    let select = db_connect()
-    .query_map(
-        "SELECT * FROM participants;",
-        |(id, name)| {
-            tables::Participants{ id, name }
-        },
-    ).unwrap();
-    
-    status::Accepted(format!("{}, {}", select[3].id, select[3].name))
+fn index() -> &'static str {
+    "ranked scheduler API"
 }
 
+// participants
 #[get("/participant/<id>")]
-    fn get_participant(id: i32) -> Json<tables::Participants> {
-        let response = db_connect().query_map(
-            format!("SELECT * FROM participants WHERE id = {} LIMIT 1;", id),
-            |(id, name)| {
-                tables::Participants{ id, name}
-            }
-        ).unwrap();
-        Json(response[0].clone())
-    }
+fn get_participant(id: i32) -> Json<tables::Participants> {
+    let response = db_connect().query_map(
+        format!("SELECT * FROM participants WHERE id = {} LIMIT 1;", id),
+        |(id, name)| {
+            tables::Participants{ id, name }
+        }
+    ).unwrap();
+    Json(response[0].clone())
+}
 
 #[post("/participant/<name>")]
 fn new_participant(name: String) -> Status {
@@ -54,9 +46,37 @@ fn new_participant(name: String) -> Status {
     }
 }
 
+// availability
+#[derive(Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct AvailabilityJson {
+    priority: i32,
+    start: i32,
+    end: i32,
+}
+#[post("/availability/<participant_id>", data="<details>")]
+fn new_availibility(participant_id: i32, details: Json<AvailabilityJson>) -> Status {
+    println!("{}", details.priority);
+    match db_connect().query_drop(format!("INSERT INTO availability(participant_id, priority, start, end) VALUES ({}, {}, {}, {});", participant_id, details.priority, details.start, details.end)) {
+        Ok(()) => Status::Ok,
+        Err(_) => Status::InternalServerError,
+    }
+}
+
+#[get("/availability/<id>")]
+    fn get_availability(id: i32) -> Json<Vec<tables::Availability>> {
+        let response = db_connect().query_map(
+            format!("SELECT * FROM availability WHERE participant_id = {};", id),
+            |(id, participant_id, priority, start, end)| {
+                tables::Availability { id, participant_id, priority, start, end }
+            }
+        ).unwrap();
+        Json(response.clone())
+    }
+
 
 #[launch]
 fn rocket() -> _ {
     
-    rocket::build().mount("/", routes![index, new_participant, get_participant])
+    rocket::build().mount("/", routes![index, new_participant, get_participant, new_availibility, get_availability])
 }
