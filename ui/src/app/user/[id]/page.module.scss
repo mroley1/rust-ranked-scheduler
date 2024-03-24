@@ -17,17 +17,13 @@
     
     &:nth-child(1) {
         position: relative;
-        div:nth-child(4n+1) {
-            &:before {
-                content: attr(data-hour);
-                padding: 0px 5px;
-                position: absolute;
-                right: 100%;
-                transform: translateY(-1px);
-            }
-            &:not(:first-child):before {
-                border-top: 1px black solid;
-            }
+        div:nth-child(4n+1):before {
+            content: attr(data-hour);
+            padding: 0px 5px;
+            position: absolute;
+            right: 100%;
+            transform: translateY(-1px);
+            border-top: 1px black solid;
         }
     }
     &:nth-child(even) {
@@ -47,8 +43,13 @@
         text-align: center;
     }
     div {
-        &:nth-child(4n+1):not(:first-child) {
+        &:nth-child(4n+1) {
             border-top: 1px black solid;
         }
+        &[data-priority="1"] {background-color: #e6308a;}
+        &[data-priority="2"] {background-color: #b12ade;}
+        &[data-priority="3"] {background-color: #5928ed;}
+        &[data-priority="4"] {background-color: #2547f0;}
+        &[data-priority="5"] {background-color: #0074e6;}
     }
 }
