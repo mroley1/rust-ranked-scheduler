@@ -1,5 +1,8 @@
 import styles from "./page.module.scss";
 
 export default function Home() {
-  return null;
+  
+  return (
+    <div></div>
+  );
 }

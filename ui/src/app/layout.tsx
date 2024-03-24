@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.scss";
-
-const inter = Inter({ subsets: ["latin"] });
+import Header from "./header";
 
 export const metadata: Metadata = {
   title: "ranked scheduler",
@@ -16,7 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <Header></Header>
+      {children}
     </html>
   );
 }
