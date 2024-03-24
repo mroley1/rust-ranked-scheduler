@@ -1,0 +1,54 @@
+
+
+.table{
+    display: grid;
+    margin: 30px 10%;
+    width: 80%;
+    height: 600px;
+    grid-template-columns: repeat(7, calc(100% / 7));
+}
+
+.column {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    position: relative;
+    grid-template-rows: repeat(96, calc(100% / 96));
+    
+    &:nth-child(1) {
+        position: relative;
+        div:nth-child(4n+1) {
+            &:before {
+                content: attr(data-hour);
+                padding: 0px 5px;
+                position: absolute;
+                right: 100%;
+                transform: translateY(-1px);
+            }
+            &:not(:first-child):before {
+                border-top: 1px black solid;
+            }
+        }
+    }
+    &:nth-child(even) {
+        background-color: #f3f3f3;
+    }
+    
+    &:nth-child(odd) {
+        background-color: #e2e2e2;
+    }
+    
+    &::before {
+        content: attr(data-dayIndex);
+        position: absolute;
+        bottom: 100%;
+        width: 100%;
+        padding: 5px 0px;
+        text-align: center;
+    }
+    div {
+        &:nth-child(4n+1):not(:first-child) {
+            border-top: 1px black solid;
+        }
+    }
+}
