@@ -64,19 +64,60 @@ fn new_availibility(participant_id: i32, details: Json<AvailabilityJson>) -> Sta
 }
 
 #[get("/availability/<id>")]
-    fn get_availability(id: i32) -> Json<Vec<tables::Availability>> {
-        let response = db_connect().query_map(
-            format!("SELECT * FROM availability WHERE participant_id = {};", id),
-            |(id, participant_id, priority, start, end)| {
-                tables::Availability { id, participant_id, priority, start, end }
+fn get_availability(id: i32) -> Json<Vec<tables::Availability>> {
+    let response = db_connect().query_map(
+        format!("SELECT * FROM availability WHERE participant_id = {};", id),
+        |(id, participant_id, priority, start, end)| {
+            tables::Availability { id, participant_id, priority, start, end }
+        }
+    ).unwrap();
+    Json(response.clone())
+}
+
+#[derive(Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct LoginJson {
+    name: String,
+}
+#[post("/login", data="<details>")]
+fn login(details: Json<LoginJson>) -> Json<tables::Participants> {
+    // check if user is in database
+    let response = match db_connect().query_map(
+        format!("SELECT * FROM participants WHERE name = '{}' LIMIT 1;", details.name),
+        |( id, name )| {
+            tables::Participants { id, name }
+        }
+    ) {
+        Ok(mut r) =>
+            // if user is in databse return their data
+            if r.len() != 0 {
+                r.remove(0)
+            // otherwise create user
+            } else {
+                let mut conn = db_connect();
+                // create user
+                match conn.query_drop(format!("INSERT INTO participants(name) VALUES ('{}');", details.name)) {
+                    Ok(()) => {}
+                    Err(_) => {panic!("Could not create user in database")}
+                }
+                // select user just created
+                conn.query_map(
+                    format!("SELECT * FROM participants WHERE name = '{}';", details.name),
+                    |( id, name )| {
+                        tables::Participants { id, name }
+                    }
+                ).unwrap().remove(0)
             }
-        ).unwrap();
-        Json(response.clone())
-    }
+        Err(_) => {
+            panic!("Could not contact database")
+        }
+    };
+    Json(response.clone())
+}
 
 
 #[launch]
 fn rocket() -> _ {
     
-    rocket::build().mount("/", routes![index, new_participant, get_participant, new_availibility, get_availability])
+    rocket::build().mount("/", routes![index, new_participant, get_participant, new_availibility, get_availability, login])
 }
