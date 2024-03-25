@@ -8,6 +8,7 @@ pub struct Availability {
     pub priority: i32,
     pub start: i32,
     pub end: i32,
+    pub day: i32,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Clone)]

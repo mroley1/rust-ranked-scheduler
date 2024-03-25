@@ -3,7 +3,7 @@ use std::vec;
 use mysql::*;
 use mysql::prelude::*;
 use rocket::http::Status;
-use rocket::serde::{Deserialize, json::Json};
+use rocket::serde::{Deserialize, Serialize, json::Json};
 
 mod tables;
 
@@ -20,6 +20,12 @@ fn db_connect() -> PooledConn {
     let pool = Pool::new(opts).unwrap();
     pool.get_conn().unwrap()
 }
+#[derive(Debug, PartialEq, Eq, Serialize, Clone)]
+#[serde(crate = "rocket::serde")]
+struct JsonResponse {
+    status: String,
+}
+
 
 #[get("/")]
 fn index() -> &'static str {
@@ -50,16 +56,28 @@ fn new_participant(name: String) -> Status {
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
 struct AvailabilityJson {
-    priority: i32,
-    start: i32,
-    end: i32,
+    p: i32,
+    s: i32,
+    e: i32
 }
 #[post("/availability/<participant_id>", data="<details>")]
-fn new_availibility(participant_id: i32, details: Json<AvailabilityJson>) -> Status {
-    println!("{}", details.priority);
-    match db_connect().query_drop(format!("INSERT INTO availability(participant_id, priority, start, end) VALUES ({}, {}, {}, {});", participant_id, details.priority, details.start, details.end)) {
-        Ok(()) => Status::Ok,
-        Err(_) => Status::InternalServerError,
+fn new_availibility(participant_id: i32, details: Json<Vec<Vec<AvailabilityJson>>>) -> Json<JsonResponse> {
+    let mut conn = db_connect();
+    let _ = conn.query_drop(format!("DELETE FROM availability WHERE participant_id = {};", participant_id));
+    let mut values: String = String::new();
+    for (day_index, day) in details.iter().enumerate() {
+        for point in day.iter() {
+            let tmp = format!("({}, {}, {}, {}, {})", participant_id, day_index, point.p, point.s, point.e);
+            if values == "" {
+                values = format!("{}", tmp);
+            } else {
+                values = format!("{}, {}", values, tmp);
+            }
+        }
+    }
+    match conn.query_drop(format!("INSERT INTO availability (participant_id, day, priority, start, end) VALUES {};", values)) {
+        Ok(()) => Json(JsonResponse {status: String::from("Ok")}),
+        Err(_) => Json(JsonResponse {status: String::from("Err")}),
     }
 }
 
@@ -67,8 +85,8 @@ fn new_availibility(participant_id: i32, details: Json<AvailabilityJson>) -> Sta
 fn get_availability(id: i32) -> Json<Vec<tables::Availability>> {
     let response = db_connect().query_map(
         format!("SELECT * FROM availability WHERE participant_id = {};", id),
-        |(id, participant_id, priority, start, end)| {
-            tables::Availability { id, participant_id, priority, start, end }
+        |(id, participant_id, priority, start, end, day)| {
+            tables::Availability { id, participant_id, priority, start, end, day }
         }
     ).unwrap();
     Json(response.clone())

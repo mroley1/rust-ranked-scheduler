@@ -36,7 +36,7 @@
     }
     
     &::before {
-        content: attr(data-dayindex);
+        content: attr(data-dayname);
         position: absolute;
         bottom: 100%;
         width: 100%;

@@ -33,6 +33,10 @@ export async function postData(endpoint: string, data: JSON): Promise<JSON> {
       body: JSON.stringify(data),
     });
     
+    if (res.status == 0) {
+        return JSON.parse("{}")
+    }
+    
     if (!res.ok) {
       throw new Error('Failed to fetch data')
     }

@@ -1,8 +1,8 @@
 "use client";
 
 import styles from "./page.module.scss"
-import { AvailabilityPoint, dayReference, priorityReference } from "./page";
-import { PointerEvent, useEffect, useState } from "react";
+import { AvailabilityPoint, priorityReference } from "./page";
+import { PointerEvent } from "react";
 
 interface Slot {
     timeStart: number,
@@ -10,12 +10,12 @@ interface Slot {
 }
 
 interface props {
-    dayIndex: number
+    dayName: string
     day: AvailabilityPoint[],
     priority: number
     setter: (data: AvailabilityPoint[])=>void
 }
-export default function Column({dayIndex, day, priority, setter}: props) {
+export default function Column({dayName, day, priority, setter}: props) {
     
     let slots: Slot[] = []
 
@@ -60,7 +60,7 @@ export default function Column({dayIndex, day, priority, setter}: props) {
             const bgColor = child.computedStyleMap().get("background-color")!.toString()
             child.style.backgroundColor = ""
             if (bgColor != lastChildColor) {
-                if (lastChildColor != "rgba(0, 0, 0, 0)") {
+                if (lastChildColor != "rgba(0, 0, 0, 0)" && lastChildColor != priorityReference[0]) {
                     currentSection!.e = minute
                     availabilityPoints.push(currentSection!)
                 }
@@ -68,7 +68,7 @@ export default function Column({dayIndex, day, priority, setter}: props) {
                 lastChildColor = bgColor
             }
         }
-        if (currentSection?.p != 0) {
+        if (currentSection != null && currentSection?.p != 0) {
             currentSection!.e = 1440
             availabilityPoints.push(currentSection!)
         }
@@ -105,7 +105,7 @@ export default function Column({dayIndex, day, priority, setter}: props) {
     const slotElements = slots.map(({timeStart, priority}: Slot) => <TimeSlot key={timeStart} priority={priority} timeStart={timeStart}></TimeSlot>)
     
     return (
-      <div data-dayindex={dayReference[dayIndex]} className={styles.column} onPointerDownCapture={selectStart} onPointerUpCapture={selectEnd}>
+      <div data-dayname={dayName} className={styles.column} onPointerDownCapture={selectStart} onPointerUpCapture={selectEnd}>
         {slotElements}
       </div>
     );

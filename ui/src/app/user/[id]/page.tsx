@@ -3,6 +3,7 @@
 import { useState } from "react";
 import styles from "./page.module.scss"
 import Column from "./column";
+import { postData } from "@/app/util";
 
 export interface AvailabilityPoint {
     p:number, s:number, e:number
@@ -19,7 +20,7 @@ export const dayReference = [
 ]
 
 export const priorityReference = [
-    "red",
+    "rgb(255, 0, 0)",
     "rgb(230, 48, 138)",
     "rgb(177, 42, 222)",
     "rgb(89, 40, 237)",
@@ -42,10 +43,12 @@ export default function Page({params}: {params: {id: number}}) {
     
     const [dayData, setDayData] = useState(initialData);
     
-    // const [render, doRender] = useState(0)
-    // function makeRender() {
-    //     doRender(render+1)
-    // }
+    function setCol(index: number, data: AvailabilityPoint[]) {
+        const tmp: AvailabilityPoint[][] = JSON.parse(JSON.stringify(dayData));
+        tmp[index] = data;
+        setDayData(tmp);
+        postData(`availability/${params.id}`, JSON.parse(JSON.stringify(tmp)))
+    }
     
     const [currentPriority, setCurrentPriority] = useState(1)
     
@@ -53,17 +56,10 @@ export default function Page({params}: {params: {id: number}}) {
         setCurrentPriority(priority)
     }
     
-    function setCol(index: number, data: AvailabilityPoint[]) {
-        const tmp: AvailabilityPoint[][] = JSON.parse(JSON.stringify(dayData));
-        tmp[index] = data;
-        setDayData(tmp);
-    }
-    
-    
     return (
       <div>
         <div className={styles.table}>
-            {dayData.map((day, index) => <Column key={index} dayIndex={index} day={day} priority={currentPriority} setter={(data: AvailabilityPoint[])=>{setCol(index, data)}}></Column>)}
+            {dayData.map((day, index) => <Column key={index} dayName={dayReference[index]} day={day} priority={currentPriority} setter={(data: AvailabilityPoint[])=>{setCol(index, data)}}></Column>)}
         </div>
         <div>
             <button onClick={()=>{prioritySelect(0)}}>0</button>
