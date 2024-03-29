@@ -1,7 +1,8 @@
 "use client";
 
 import styles from "./page.module.scss"
-import { AvailabilityPoint, priorityReference } from "./page";
+import { priorityReference } from "./table";
+import AvailabilityPoint from "@/common/AvailabilityPoint";
 import { PointerEvent } from "react";
 
 interface Slot {

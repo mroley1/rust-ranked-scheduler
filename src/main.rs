@@ -53,7 +53,7 @@ fn new_participant(name: String) -> Status {
 }
 
 // availability
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 struct AvailabilityJson {
     p: i32,
@@ -81,15 +81,19 @@ fn new_availibility(participant_id: i32, details: Json<Vec<Vec<AvailabilityJson>
     }
 }
 
-#[get("/availability/<id>")]
-fn get_availability(id: i32) -> Json<Vec<tables::Availability>> {
+#[get("/availability/<participant_id>")]
+fn get_availability(participant_id: i32) -> Json<Vec<Vec<AvailabilityJson>>> {
     let response = db_connect().query_map(
-        format!("SELECT * FROM availability WHERE participant_id = {};", id),
+        format!("SELECT * FROM availability WHERE participant_id = {};", participant_id),
         |(id, participant_id, priority, start, end, day)| {
             tables::Availability { id, participant_id, priority, start, end, day }
         }
     ).unwrap();
-    Json(response.clone())
+    let mut useable_response: Vec<Vec<AvailabilityJson>> = vec![vec![],vec![],vec![],vec![],vec![],vec![],vec![]];
+    response.iter().for_each(|entry| {
+        useable_response[entry.day].append(& mut vec![AvailabilityJson {p: entry.priority, s: entry.start, e: entry.end}]);
+    });
+    Json(useable_response)
 }
 
 #[derive(Deserialize)]
