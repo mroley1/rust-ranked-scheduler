@@ -4,7 +4,6 @@ import { useState } from "react";
 import styles from "./page.module.scss"
 import Column from "./column";
 import AvailabilityPoint from "@/common/AvailabilityPoint";
-import { POST } from "@/app/api/availability/[id]/route";
 
 
 export const dayReference = [
@@ -26,7 +25,8 @@ export const priorityReference = [
     "rgb(0, 116, 230)",
 ]
 
-export default function Table({initialData, post}: {initialData: AvailabilityPoint[][], post: (dayData: AvailabilityPoint[][])=>{}}) {
+export default function Table({initialData, saveTable}: {initialData: AvailabilityPoint[][], saveTable: (dayData: AvailabilityPoint[][])=>{}}) {
+    
     
     const [dayData, setDayData] = useState(initialData);
     
@@ -34,7 +34,7 @@ export default function Table({initialData, post}: {initialData: AvailabilityPoi
         const tmp: AvailabilityPoint[][] = JSON.parse(JSON.stringify(dayData));
         tmp[index] = data;
         setDayData(tmp);
-        post(tmp);
+        saveTable(tmp);
     }
     
     const [currentPriority, setCurrentPriority] = useState(1)
