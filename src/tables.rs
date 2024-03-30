@@ -13,6 +13,14 @@ pub struct Availability {
 
 #[derive(Debug, PartialEq, Eq, Serialize, Clone)]
 #[serde(crate = "rocket::serde")]
+pub struct Meeting {
+    pub id: i32,
+    pub name: String,
+    pub length: i32,
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Clone)]
+#[serde(crate = "rocket::serde")]
 pub struct Columns {
     pub id: i32,
     pub name: String,
