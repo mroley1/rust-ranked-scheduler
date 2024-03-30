@@ -3,6 +3,7 @@
 import AvailabilityPoint from "@/common/AvailabilityPoint";
 import Table from "./table";
 import MeetingOption from "./meetingOption";
+import meetingStyles from "./meetingOption.module.scss"
 
 export default async function Page({params}: {params: {id: number}}) {
     
@@ -30,9 +31,9 @@ export default async function Page({params}: {params: {id: number}}) {
       <div>
         <Table initialData={availabilityData} saveTable={saveTable} />
         <h1>user: {userData.name}</h1>
-        <ul>
+        <div className={meetingStyles.meetingsContainer}>
             {meetingData.map((meeting: {meeting: {id: number, name:string, length: number}, tag: number}) => <MeetingOption meeting={meeting.meeting} tag={meeting.tag}></MeetingOption>)}
-        </ul>
+        </div>
       </div>
     );
   }

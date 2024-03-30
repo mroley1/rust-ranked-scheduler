@@ -1,0 +1,53 @@
+
+
+.meetingsContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 0px 10vw;
+    
+    .meeting_option {
+        margin: 15px 0px;
+        border: black solid 1px;
+        border-radius: 10px;
+        padding: 10px;
+        width: 100%;
+        display: grid;
+        grid-template-areas: "name length tags";
+        grid-template-columns: auto min-content min-content;
+        cursor: pointer;
+        
+        .name {
+            grid-area: name;
+            margin: 0px 10px;
+            padding: 7px 0px;
+        }
+        
+        .length {
+            grid-area: length;
+            margin: 0px 5px;
+            padding: 7px 0px;
+        }
+        
+        .tags {
+            grid-area: tags;
+            margin: 0px 5px;
+            
+            & > div {
+                border: black solid 1px;
+                border-radius: 5px;
+                padding: 5px 10px;
+                box-sizing: border-box;
+            }
+            
+            div.tag_participating {
+                background-color: rgb(103, 103, 255);
+                color: white;
+            }
+            
+            div.tag_own {
+                background-color: rgb(235, 238, 89);
+                color: black;
+            }
+        }
+    }
+}
