@@ -2,6 +2,7 @@
 
 import AvailabilityPoint from "@/common/AvailabilityPoint";
 import Table from "./table";
+import MeetingOption from "./meetingOption";
 
 export default async function Page({params}: {params: {id: number}}) {
     
@@ -21,11 +22,17 @@ export default async function Page({params}: {params: {id: number}}) {
         })
     }
     
+    const meetingData = await(await fetch(`http://localhost:8000/meeting/${params.id}`, {
+        method: "GET", mode: "no-cors", cache: "no-cache", credentials: "same-origin", headers: {"Content-Type": "application/json",}, redirect: "follow", referrerPolicy: "no-referrer",
+    })).json()
+    
     return (
       <div>
         <Table initialData={availabilityData} saveTable={saveTable} />
         <h1>user: {userData.name}</h1>
-        <ul></ul>
+        <ul>
+            {meetingData.map((meeting: {meeting: {id: number, name:string, length: number}, tag: number}) => <MeetingOption meeting={meeting.meeting} tag={meeting.tag}></MeetingOption>)}
+        </ul>
       </div>
     );
   }

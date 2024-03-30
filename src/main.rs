@@ -99,61 +99,77 @@ fn get_availability(participant_id: i32) -> Json<Vec<Vec<AvailabilityJson>>> {
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
 struct MeetingsJson {
-    g: Vec<tables::Meeting>,
-    o: Vec<tables::Meeting>,
-    p: Vec<tables::Meeting>,
+    meeting: tables::Meeting,
+    tag: i32,
 }
 #[get("/meeting/<participant_id>")]
-fn get_meetings(participant_id: i32) -> Json<MeetingsJson> {
-    let general = db_connect().query_map(
+fn get_meetings(participant_id: i32) -> Json<Vec<MeetingsJson>> {
+    let mut full: Vec<MeetingsJson> = vec![];
+        
+    // general
+    full.append(&mut db_connect().query_map(
         format!("
-        SELECT * FROM meeting as m
+            SELECT * FROM meeting as m
             WHERE m.ID NOT IN (
-            SELECT o.meeting_id FROM ownership AS o
-            WHERE o.participant_id = {}
-            GROUP BY meeting_id
-        ) AND m.ID NOT IN (
-            SELECT p.meeting_id FROM participation AS p
-            WHERE p.participant_id = {}
-            GROUP BY meeting_id
-        );", participant_id, participant_id),
-        |(id, name, length)| {
-            tables::Meeting { id, name, length }
-        }
-    ).unwrap();
-    let owner = db_connect().query_map(
+                SELECT o.meeting_id FROM ownership AS o
+                WHERE o.participant_id = {}
+                GROUP BY meeting_id
+            ) AND m.ID NOT IN (
+                SELECT p.meeting_id FROM participation AS p
+                WHERE p.participant_id = {}
+                GROUP BY meeting_id
+            );", participant_id, participant_id),
+            |(id, name, length)| {
+                tables::Meeting { id, name, length }
+            }
+        ).unwrap().iter().map(|meeting| {
+            MeetingsJson {meeting: meeting.clone(), tag: 0}
+        }).collect()
+    );
+    
+    //owner
+    full.append(&mut db_connect().query_map(
         format!("
-        SELECT * FROM meeting as m
+            SELECT * FROM meeting as m
             WHERE m.ID IN (
-            SELECT o.meeting_id FROM ownership AS o
-            WHERE o.participant_id = {}
-            GROUP BY meeting_id
-        ) AND m.ID NOT IN (
-            SELECT p.meeting_id FROM participation AS p
-            WHERE p.participant_id = {}
-            GROUP BY meeting_id
-        );", participant_id, participant_id),
-        |(id, name, length)| {
-            tables::Meeting { id, name, length }
-        }
-    ).unwrap();
-    let participating = db_connect().query_map(
+                SELECT o.meeting_id FROM ownership AS o
+                WHERE o.participant_id = {}
+                GROUP BY meeting_id
+            );", participant_id),
+            |(id, name, length)| {
+                tables::Meeting { id, name, length }
+            }
+        ).unwrap().iter().map(|meeting| {
+            MeetingsJson {meeting: meeting.clone(), tag: 1}
+        }).collect()
+    );
+    
+    // participating
+    full.append(&mut db_connect().query_map(
         format!("
-        SELECT * FROM meeting as m
+            SELECT * FROM meeting as m
             WHERE m.ID NOT IN (
-            SELECT o.meeting_id FROM ownership AS o
-            WHERE o.participant_id = {}
-            GROUP BY meeting_id
-        ) AND m.ID IN (
-            SELECT p.meeting_id FROM participation AS p
-            WHERE p.participant_id = {}
-            GROUP BY meeting_id
-        );", participant_id, participant_id),
-        |(id, name, length)| {
-            tables::Meeting { id, name, length }
-        }
-    ).unwrap();
-    Json(MeetingsJson { g: general, o: owner, p: participating })
+                SELECT o.meeting_id FROM ownership AS o
+                WHERE o.participant_id = {}
+                GROUP BY meeting_id
+            ) AND m.ID IN (
+                SELECT p.meeting_id FROM participation AS p
+                WHERE p.participant_id = {}
+                GROUP BY meeting_id
+            );", participant_id, participant_id),
+            |(id, name, length)| {
+                tables::Meeting { id, name, length }
+            }
+        ).unwrap().iter().map(|meeting| {
+            MeetingsJson {meeting: meeting.clone(), tag: 2}
+        }).collect()
+    );
+    
+    full.sort_by(|a, b| {
+        a.meeting.name.cmp(&b.meeting.name)
+    });
+    
+    Json(full)
 }
 
 #[derive(Deserialize, Serialize)]
@@ -219,6 +235,5 @@ fn login(details: Json<LoginJson>) -> Json<tables::Participants> {
 
 #[launch]
 fn rocket() -> _ {
-    
     rocket::build().mount("/", routes![index, new_participant, get_participant, new_availibility, get_availability, login, new_meeting, get_meetings])
 }
