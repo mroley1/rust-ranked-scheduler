@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import styles from "./meetingOption.module.scss"
 
 import MeetingPoint from "@/common/MeetingPoint";
 
 
-export default function MeetingOption({meeting, tag}: {meeting: MeetingPoint, tag: number}) {
+export default function MeetingOption({meeting, tag, userId}: {meeting: MeetingPoint, tag: number, userId: number}) {
     
     const tagLookup = [
         null, // 0
@@ -24,16 +25,18 @@ export default function MeetingOption({meeting, tag}: {meeting: MeetingPoint, ta
     
     
     return (
-      <div className={styles.meeting_option}>
-        <div className={styles.name}>
-            <span>{meeting.name}</span>
-        </div>
-        <div className={styles.length}>
-            {convertToTime(meeting.length)}
-        </div>
-        <div className={styles.tags}>
-            {tagLookup[tag]}
-        </div>
-      </div>
+        <Link href={`/meeting/${meeting.id}/${userId}`}>
+            <div className={styles.meeting_option}>
+                <div className={styles.name}>
+                    <span>{meeting.name}</span>
+                </div>
+                <div className={styles.length}>
+                    <span>{convertToTime(meeting.length)}</span>
+                </div>
+                <div className={styles.tags}>
+                    {tagLookup[tag]}
+                </div>
+            </div>
+        </Link>
     );
   }

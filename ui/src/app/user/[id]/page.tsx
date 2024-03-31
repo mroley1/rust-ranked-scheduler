@@ -32,7 +32,7 @@ export default async function Page({params}: {params: {id: number}}) {
         <Table initialData={availabilityData} saveTable={saveTable} />
         <h1>user: {userData.name}</h1>
         <div className={meetingStyles.meetingsContainer}>
-            {meetingData.map((meeting: {meeting: {id: number, name:string, length: number}, tag: number}) => <MeetingOption meeting={meeting.meeting} tag={meeting.tag}></MeetingOption>)}
+            {meetingData.map((meeting: {meeting: {id: number, name:string, length: number}, tag: number}) => <MeetingOption meeting={meeting.meeting} tag={meeting.tag} userId={params.id}></MeetingOption>)}
         </div>
       </div>
     );
